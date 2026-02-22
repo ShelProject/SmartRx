@@ -69,7 +69,7 @@ if menu == "🏠 Home / Beranda":
             st.warning("🧮 **Manual Calculator**\n\nPerform manual mg/kg calculations for any custom drug or syrup.")
             st.button("Go to Manual Calculator", use_container_width=True, on_click=switch_page, args=("🧮 Manual Calculator / Manual",))
             
-            st.primary("⚖️ **BMI & BSA Calculator**\n\nCalculate Body Mass Index and Body Surface Area.")
+            st.info("⚖️ **BMI & BSA Calculator**\n\nCalculate Body Mass Index and Body Surface Area.")
             st.button("Go to BMI & BSA", use_container_width=True, on_click=switch_page, args=("⚖️ BMI & BSA / Antropometri",))
                 
             st.error("📚 **Drug References**\n\nSearch your digital database for dosages, indications, and clinical warnings.")
@@ -90,7 +90,7 @@ if menu == "🏠 Home / Beranda":
             st.warning("🧮 **Kalkulator Manual**\n\nLakukan perhitungan mg/kg manual untuk sediaan obat atau sirup apa pun.")
             st.button("Buka Kalkulator Manual", use_container_width=True, on_click=switch_page, args=("🧮 Manual Calculator / Manual",))
             
-            st.primary("⚖️ **Kalkulator BMI & BSA**\n\nHitung Indeks Massa Tubuh dan Luas Permukaan Tubuh.")
+            st.info("⚖️ **Kalkulator BMI & BSA**\n\nHitung Indeks Massa Tubuh dan Luas Permukaan Tubuh.")
             st.button("Buka Kalkulator Antropometri", use_container_width=True, on_click=switch_page, args=("⚖️ BMI & BSA / Antropometri",))
                 
             st.error("📚 **Referensi Obat**\n\nCari database digital Anda untuk dosis, indikasi, dan peringatan klinis.")
