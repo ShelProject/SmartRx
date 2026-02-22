@@ -1,11 +1,10 @@
-
 import streamlit as st
 import pandas as pd
 import os
+import math
 
 st.set_page_config(page_title="SmartRx", layout="wide", initial_sidebar_state="expanded")
 
-# Initialize session state for language and menu
 if 'lang' not in st.session_state:
     st.session_state.lang = "English"
 if 'menu_selection' not in st.session_state:
@@ -19,15 +18,16 @@ st.sidebar.title("Navigation / Navigasi")
 menu_options = [
     "🏠 Home / Beranda",
     "💊 Auto-Calc / Kalkulator Otomatis", 
-    "🧮 Manual Drugs Calculator / Kalkulator Obat Manual", 
+    "🧮 Manual Calculator / Manual", 
     "💧 IV Fluid / Cairan Infus",
-    "📚 Drug References / Referensi Obat"
+    "👶 Peds Dehydration / Dehidrasi Anak", 
+    "⚖️ BMI & BSA / Antropometri", 
+    "📚 Drug References / Referensi"
 ]
 
 menu = st.sidebar.radio("Menu", menu_options, key="menu_selection")
 
 # --- SIDEBAR FOOTER ---
-# Using multiple line breaks to push the text to the bottom of the sidebar visually
 st.sidebar.markdown("<br><br><br><br><br><br><br><br><br><br>", unsafe_allow_html=True)
 st.sidebar.divider()
 if st.session_state.lang == "English":
@@ -39,7 +39,6 @@ file_path = "drugs_database.xlsx"
 
 # --- 1. HOME PAGE ---
 if menu == "🏠 Home / Beranda":
-    # 1. First, render the title and language toggle at the very top
     if st.session_state.lang == "English":
         st.title("🩺 SmartRx Clinical Assistant")
         st.markdown("Welcome to SmartRx. This tool is designed to provide quick, accurate, and safe dosage calculations to streamline your clinical workflow.")
@@ -53,7 +52,6 @@ if menu == "🏠 Home / Beranda":
     
     st.divider()
 
-    # 2. Then, create the columns and place the buttons below the title
     col1, col2 = st.columns(2)
     
     if st.session_state.lang == "English":
@@ -62,29 +60,41 @@ if menu == "🏠 Home / Beranda":
             st.button("Go to Auto-Calc", use_container_width=True, on_click=switch_page, args=("💊 Auto-Calc / Kalkulator Otomatis",))
                 
             st.success("💧 **IV Fluid Calculator**\n\nCalculate maintenance fluids and exact nursing drip rates.")
-            st.button("Go to IV Fluid Calculator", use_container_width=True, on_click=switch_page, args=("💧 IV Fluid / Cairan Infus",))
+            st.button("Go to IV Fluid", use_container_width=True, on_click=switch_page, args=("💧 IV Fluid / Cairan Infus",))
+            
+            st.warning("👶 **Pediatric Dehydration**\n\nCalculate WHO Plan B (ORS) and Plan C (IV Fluids) for children.")
+            st.button("Go to Peds Dehydration", use_container_width=True, on_click=switch_page, args=("👶 Peds Dehydration / Dehidrasi Anak",))
 
         with col2:
-            st.warning("🧮 **Manual Drugs Calculator**\n\nPerform manual mg/kg calculations for any custom drug or syrup.")
-            st.button("Go to Manual Drugs Calculator", use_container_width=True, on_click=switch_page, args=("🧮 Manual Drugs Calculator / Kalkulator Obat Manual",))
+            st.warning("🧮 **Manual Calculator**\n\nPerform manual mg/kg calculations for any custom drug or syrup.")
+            st.button("Go to Manual Calculator", use_container_width=True, on_click=switch_page, args=("🧮 Manual Calculator / Manual",))
+            
+            st.primary("⚖️ **BMI & BSA Calculator**\n\nCalculate Body Mass Index and Body Surface Area.")
+            st.button("Go to BMI & BSA", use_container_width=True, on_click=switch_page, args=("⚖️ BMI & BSA / Antropometri",))
                 
             st.error("📚 **Drug References**\n\nSearch your digital database for dosages, indications, and clinical warnings.")
-            st.button("Go to Drug References", use_container_width=True, on_click=switch_page, args=("📚 Drug References / Referensi Obat",))
+            st.button("Go to Drug References", use_container_width=True, on_click=switch_page, args=("📚 Drug References / Referensi",))
             
     else:
         with col1:
             st.info("⚡ **Kalkulator Otomatis Obat**\n\nHitung otomatis rentang dosis aman dan jumlah resep yang tepat.")
             st.button("Buka Kalkulator Otomatis", use_container_width=True, on_click=switch_page, args=("💊 Auto-Calc / Kalkulator Otomatis",))
                 
-            st.success("💧 **Kalkulator Cairan Infus**\n\nHitung cairan pemeliharaan dan kecepatan tetesan infus.")
+            st.success("💧 **Kalkulator Cairan Infus**\n\nHitung cairan pemeliharaan dan kecepatan tetesan infus perawat.")
             st.button("Buka Kalkulator Infus", use_container_width=True, on_click=switch_page, args=("💧 IV Fluid / Cairan Infus",))
+            
+            st.warning("👶 **Dehidrasi Anak (MTBS)**\n\nHitung Rencana B (Oralit) dan Rencana C (Infus) berdasarkan panduan WHO.")
+            st.button("Buka Kalkulator Dehidrasi", use_container_width=True, on_click=switch_page, args=("👶 Peds Dehydration / Dehidrasi Anak",))
 
         with col2:
             st.warning("🧮 **Kalkulator Manual**\n\nLakukan perhitungan mg/kg manual untuk sediaan obat atau sirup apa pun.")
-            st.button("Buka Kalkulator Obat Manual", use_container_width=True, on_click=switch_page, args=("🧮 Manual Drugs Calculator / Kalkulator Obat Manual",))
+            st.button("Buka Kalkulator Manual", use_container_width=True, on_click=switch_page, args=("🧮 Manual Calculator / Manual",))
+            
+            st.primary("⚖️ **Kalkulator BMI & BSA**\n\nHitung Indeks Massa Tubuh dan Luas Permukaan Tubuh.")
+            st.button("Buka Kalkulator Antropometri", use_container_width=True, on_click=switch_page, args=("⚖️ BMI & BSA / Antropometri",))
                 
             st.error("📚 **Referensi Obat**\n\nCari database digital Anda untuk dosis, indikasi, dan peringatan klinis.")
-            st.button("Buka Referensi Obat", use_container_width=True, on_click=switch_page, args=("📚 Drug References / Referensi Obat",))
+            st.button("Buka Referensi Obat", use_container_width=True, on_click=switch_page, args=("📚 Drug References / Referensi",))
 
 # --- 2. AUTO CALCULATOR ---
 elif menu == "💊 Auto-Calc / Kalkulator Otomatis":
@@ -157,7 +167,7 @@ elif menu == "💊 Auto-Calc / Kalkulator Otomatis":
         st.error(f"⚠️ Could not find '{file_path}'.")
 
 # --- 3. MANUAL CALCULATOR ---
-elif menu == "🧮 Manual Drugs Calculator / Kalkulator Obat Manual":
+elif menu == "🧮 Manual Calculator / Manual":
     st.header("Manual Calculator" if st.session_state.lang == "English" else "Kalkulator Dosis Manual")
     
     w_label = "Patient Weight (kg)" if st.session_state.lang == "English" else "Berat Badan Pasien (kg)"
@@ -231,10 +241,106 @@ elif menu == "💧 IV Fluid / Cairan Infus":
             st.info(f"**Nursing Instruction:** Run IV fluid at {drip_rate:.0f} drops per minute.")
         else:
             st.success(f"**Kebutuhan Volume 24 Jam:** {vol:.1f} mL")
-            st.info(f"**Instruksi untuk Perawat:** Berikan cairan infus dengan kecepatan {drip_rate:.0f} tetes per menit (tpm).")
+            st.info(f"**Instruksi Perawat:** Berikan cairan infus dengan kecepatan {drip_rate:.0f} tetes per menit (tpm).")
 
-# --- 5. DRUG REFERENCES ---
-elif menu == "📚 Drug References / Referensi Obat":
+# --- 5. PEDIATRIC DEHYDRATION (NEW) ---
+elif menu == "👶 Peds Dehydration / Dehidrasi Anak":
+    st.header("Pediatric Dehydration (WHO)" if st.session_state.lang == "English" else "Kalkulator Dehidrasi Anak (MTBS / WHO)")
+    
+    w_label = "Patient Weight (kg)" if st.session_state.lang == "English" else "Berat Badan Pasien (kg)"
+    weight = st.number_input(w_label, min_value=0.0, step=0.1, key="dehyd_w")
+    
+    age_label = "Age Category" if st.session_state.lang == "English" else "Kategori Umur"
+    age_cat = st.radio(age_label, 
+                       ["< 12 Months" if st.session_state.lang == "English" else "< 12 Bulan", 
+                        "1 - 5 Years" if st.session_state.lang == "English" else "1 - 5 Tahun", 
+                        "> 5 Years" if st.session_state.lang == "English" else "> 5 Tahun"])
+    
+    sev_label = "Dehydration Severity" if st.session_state.lang == "English" else "Tingkat Dehidrasi"
+    severity = st.radio(sev_label, 
+                        ["Mild-Moderate (Plan B)" if st.session_state.lang == "English" else "Ringan-Sedang (Rencana B - Oralit)", 
+                         "Severe (Plan C)" if st.session_state.lang == "English" else "Berat (Rencana C - Infus RL/NaCl)"])
+    
+    calc_txt = "Calculate" if st.session_state.lang == "English" else "Hitung"
+    
+    if st.button(calc_txt) and weight > 0:
+        if "Plan B" in severity or "Rencana B" in severity:
+            # Plan B: 75 ml / kg over 4 hours
+            vol = 75 * weight
+            if st.session_state.lang == "English":
+                st.success(f"**Total ORS Volume:** {vol:.1f} mL")
+                st.info("**Instruction:** Give this volume of Oral Rehydration Solution (ORS) slowly over 4 hours.")
+            else:
+                st.success(f"**Total Volume Oralit:** {vol:.1f} mL")
+                st.info("**Instruksi:** Berikan volume Oralit ini secara perlahan selama 4 jam pertama.")
+        else:
+            # Plan C: 100 ml / kg IV
+            total_vol = 100 * weight
+            vol_1 = 30 * weight
+            vol_2 = 70 * weight
+            
+            if "< 12" in age_cat:
+                time_1 = "1 hour" if st.session_state.lang == "English" else "1 jam"
+                time_2 = "5 hours" if st.session_state.lang == "English" else "5 jam"
+            else:
+                time_1 = "30 minutes" if st.session_state.lang == "English" else "30 menit"
+                time_2 = "2.5 hours" if st.session_state.lang == "English" else "2,5 jam"
+            
+            if st.session_state.lang == "English":
+                st.success(f"**Total IV Fluid Volume (RL/NaCl 0.9%):** {total_vol:.1f} mL")
+                st.warning(f"**Step 1:** Give {vol_1:.1f} mL fast over {time_1}.")
+                st.info(f"**Step 2:** Then give the remaining {vol_2:.1f} mL over {time_2}.")
+                st.error("⚠️ *Reassess continuously. If radial pulse is still weak after Step 1, repeat Step 1.*")
+            else:
+                st.success(f"**Total Cairan Infus (RL/NaCl 0.9%):** {total_vol:.1f} mL")
+                st.warning(f"**Langkah 1:** Berikan {vol_1:.1f} mL secara cepat dalam {time_1}.")
+                st.info(f"**Langkah 2:** Kemudian berikan sisanya {vol_2:.1f} mL dalam {time_2}.")
+                st.error("⚠️ *Evaluasi terus menerus. Jika nadi radialis masih lemah/tidak teraba setelah Langkah 1, ulangi Langkah 1.*")
+
+# --- 6. BMI & BSA CALCULATOR ---
+elif menu == "⚖️ BMI & BSA / Antropometri":
+    st.header("BMI & BSA Calculator" if st.session_state.lang == "English" else "Kalkulator BMI & BSA (Antropometri)")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        w_label = "Patient Weight (kg)" if st.session_state.lang == "English" else "Berat Badan (kg)"
+        weight = st.number_input(w_label, min_value=0.0, step=0.1)
+    with col2:
+        h_label = "Patient Height (cm)" if st.session_state.lang == "English" else "Tinggi Badan (cm)"
+        height = st.number_input(h_label, min_value=0.0, step=1.0)
+        
+    calc_txt = "Calculate" if st.session_state.lang == "English" else "Hitung"
+    
+    if st.button(calc_txt) and weight > 0 and height > 0:
+        height_m = height / 100
+        bmi = weight / (height_m ** 2)
+        
+        if bmi < 18.5:
+            cat_en, cat_id = "Underweight", "Kekurangan Berat Badan"
+            color = "blue"
+        elif 18.5 <= bmi <= 24.9:
+            cat_en, cat_id = "Normal weight", "Berat Badan Normal"
+            color = "green"
+        elif 25.0 <= bmi <= 29.9:
+            cat_en, cat_id = "Overweight", "Kelebihan Berat Badan"
+            color = "orange"
+        else:
+            cat_en, cat_id = "Obesity", "Obesitas"
+            color = "red"
+            
+        bsa = math.sqrt((weight * height) / 3600)
+        
+        if st.session_state.lang == "English":
+            st.success(f"**Body Surface Area (BSA):** {bsa:.2f} m²")
+            st.info(f"**Body Mass Index (BMI):** {bmi:.1f} kg/m²")
+            st.markdown(f"**Category:** :{color}[{cat_en}]")
+        else:
+            st.success(f"**Luas Permukaan Tubuh (BSA):** {bsa:.2f} m²")
+            st.info(f"**Indeks Massa Tubuh (BMI):** {bmi:.1f} kg/m²")
+            st.markdown(f"**Kategori:** :{color}[{cat_id}]")
+
+# --- 7. DRUG REFERENCES ---
+elif menu == "📚 Drug References / Referensi":
     st.header("Drug References" if st.session_state.lang == "English" else "Referensi Obat & Dosis Standar")
     
     if os.path.exists(file_path):
@@ -258,11 +364,6 @@ elif menu == "📚 Drug References / Referensi Obat":
             df = df.reset_index(drop=True)
             df.index = df.index + 1
             
-            styled_df = df.style.set_properties(**{
-                'word-break': 'normal',
-                'white-space': 'normal'
-            })
-            
-            st.table(styled_df)
+            st.dataframe(df, use_container_width=False)
     else:
         st.error(f"⚠️ Could not find '{file_path}'. Please place the Excel file in the same folder.")
