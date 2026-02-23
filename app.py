@@ -383,6 +383,7 @@ elif menu == "📚 Drug References / Referensi":
 st.divider()
 if st.session_state.lang == "English":
     st.caption("**Medical Disclaimer:** This application is designed strictly as a supplementary clinical calculation tool for healthcare professionals. It does not replace professional clinical judgment. Always verify calculations, drug dosages, and contraindications with standard medical guidelines before prescribing treatment.")
-    st.caption("""for more information please contact : **dr.Shelly Lesmana**""")
+    st.caption("""For more information please contact : **dr.Shelly Lesmana**""")
 else:
     st.caption("**Informasi:** Aplikasi ini dirancang sebagai alat bantu perhitungan klinis tambahan untuk tenaga medis profesional. Aplikasi ini tidak menggantikan penilaian klinis profesional. Selalu verifikasi perhitungan, dosis obat, dan kontraindikasi dengan panduan standar medis sebelum memberikan resep atau perawatan pada pasien.")
+    st.caption("""Kontak : **dr.Shelly Lesmana**""")
