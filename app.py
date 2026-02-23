@@ -8,7 +8,8 @@ st.set_page_config(page_title="SmartRx", page_icon="🩺", layout="wide", initia
 # --- HIDE STREAMLIT BRANDING ---
 hide_st_style = """
             <style>
-            [data-testid="stToolbar"] {visibility: hidden !important;}
+            #MainMenu {visibility: hidden;}
+            [data-testid="stToolbarActions"] {visibility: hidden !important;}
             footer {visibility: hidden !important;}
             </style>
             """
