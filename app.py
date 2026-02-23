@@ -57,8 +57,8 @@ if menu == "🏠 Home / Beranda":
         st.markdown("Selamat datang di SmartRx. Alat ini dirancang untuk memberikan perhitungan dosis yang cepat, akurat, dan aman untuk membantu alur kerja klinis Anda.")
         
     st.write("### 🌐 Select Language / Pilih Bahasa")
-    lang_choice = st.radio("", ["English", "Bahasa Indonesia"], index=0 if st.session_state.lang == "English" else 1, horizontal=True)
-    st.session_state.lang = lang_choice
+    st.radio("", ["English", "Bahasa Indonesia"], key="lang", horizontal=True)
+    
     
     st.divider()
 
@@ -383,7 +383,7 @@ elif menu == "📚 Drug References / Referensi":
 st.divider()
 if st.session_state.lang == "English":
     st.caption("**Medical Disclaimer:** This application is designed strictly as a supplementary clinical calculation tool for healthcare professionals. It does not replace professional clinical judgment. Always verify calculations, drug dosages, and contraindications with standard medical guidelines before prescribing treatment.")
-    st.caption("""For more information please contact : **dr.Shelly Lesmana**""")
+   
 else:
     st.caption("**Informasi:** Aplikasi ini dirancang sebagai alat bantu perhitungan klinis tambahan untuk tenaga medis profesional. Aplikasi ini tidak menggantikan penilaian klinis profesional. Selalu verifikasi perhitungan, dosis obat, dan kontraindikasi dengan panduan standar medis sebelum memberikan resep atau perawatan pada pasien.")
-    st.caption("""Kontak : **dr.Shelly Lesmana**""")
+    
