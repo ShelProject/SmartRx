@@ -23,6 +23,9 @@ if 'menu_selection' not in st.session_state:
 def switch_page(page_name):
     st.session_state.menu_selection = page_name
 
+def change_language():
+    st.session_state.lang = st.session_state.lang_widget
+
 # --- SIDEBAR NAV ---
 st.sidebar.title("Navigation / Navigasi")
 menu_options = [
@@ -57,7 +60,12 @@ if menu == "🏠 Home / Beranda":
         st.markdown("Selamat datang di SmartRx. Alat ini dirancang untuk memberikan perhitungan dosis yang cepat, akurat, dan aman untuk membantu alur kerja klinis Anda.")
         
     st.write("### 🌐 Select Language / Pilih Bahasa")
-    st.radio("", ["English", "Bahasa Indonesia"], key="lang", horizontal=True)
+    st.radio("", 
+             ["English", "Bahasa Indonesia"], 
+             index=0 if st.session_state.lang == "English" else 1,
+             key="lang_widget", 
+             on_change=change_language, 
+             horizontal=True)
     
     
     st.divider()
