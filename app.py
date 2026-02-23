@@ -85,12 +85,6 @@ if menu == "🏠 Home / Beranda":
             st.error("📚 **Drug References**\n\nSearch your digital database for dosages, indications, and clinical warnings.")
             st.button("Go to Drug References", use_container_width=True, on_click=switch_page, args=("📚 Drug References / Referensi",))
             
-            st. divider()
-            #--- ENGLISH DISCLAIMER ---
-            with st.expander("⚖️ Medical Disclaimer"):
-                st.caption("""
-                **Disclaimer:** SmartRx is designed strictly as a supplementary clinical calculation tool for healthcare professionals. It does not replace professional clinical judgment. Always verify calculations, drug dosages, and contraindications with standard medical guidelines before prescribing treatment.
-                """)
     else:
         with col1:
             st.info("⚡ **Kalkulator Otomatis Obat**\n\nHitung otomatis rentang dosis aman dan jumlah resep yang tepat.")
@@ -111,12 +105,7 @@ if menu == "🏠 Home / Beranda":
                 
             st.error("📚 **Referensi Obat**\n\nCari database digital Anda untuk dosis, indikasi, dan peringatan klinis.")
             st.button("Buka Referensi Obat", use_container_width=True, on_click=switch_page, args=("📚 Drug References / Referensi",))
-    st.divider()
-    #---INDONESIA DISCLAIMER---
-    with st.expander("⚖️ Penafian Medis (Disclaimer)"):
-            st.caption("""
-            **Peringatan:** SmartRx dirancang sebagai alat bantu perhitungan klinis tambahan untuk tenaga medis profesional. Aplikasi ini tidak menggantikan penilaian klinis profesional. Selalu verifikasi perhitungan, dosis obat, dan kontraindikasi dengan panduan standar medis sebelum memberikan resep atau perawatan pada pasien.
-            """)
+
 
 # --- 2. AUTO CALCULATOR ---
 elif menu == "💊 Auto-Calc / Kalkulator Otomatis":
@@ -389,3 +378,10 @@ elif menu == "📚 Drug References / Referensi":
             st.dataframe(df, use_container_width=False)
     else:
         st.error(f"⚠️ Could not find '{file_path}'. Please place the Excel file in the same folder.")
+
+# --- GLOBAL FOOTER & DISCLAIMER (Visible on all pages) ---
+st.divider()
+if st.session_state.lang == "English":
+    st.caption("**Medical Disclaimer:** This application is designed strictly as a supplementary clinical calculation tool for healthcare professionals. It does not replace professional clinical judgment. Always verify calculations, drug dosages, and contraindications with standard medical guidelines before prescribing treatment.")
+else:
+    st.caption("**Informasi:** Aplikasi ini dirancang sebagai alat bantu perhitungan klinis tambahan untuk tenaga medis profesional. Aplikasi ini tidak menggantikan penilaian klinis profesional. Selalu verifikasi perhitungan, dosis obat, dan kontraindikasi dengan panduan standar medis sebelum memberikan resep atau perawatan pada pasien.")
