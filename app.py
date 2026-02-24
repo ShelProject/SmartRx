@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import math
+import datetime
 
 st.set_page_config(page_title="SmartRx", page_icon="🩺", layout="wide", initial_sidebar_state="expanded")
 
@@ -32,9 +33,11 @@ menu_options = [
     "🏠 Home / Beranda",
     "💊 Auto-Calc / Kalkulator Otomatis", 
     "🧮 Manual Calculator / Manual", 
+    "💉 Injection Drugs / Obat Injeksi",
     "💧 IV Fluid / Cairan Infus",
     "👶 Peds Dehydration / Dehidrasi Anak", 
     "⚖️ BMI & BSA / Antropometri", 
+    "🤰 Obstetric Calc / Kandungan"
     "📚 Drug References / Referensi"
 ]
 
@@ -76,7 +79,10 @@ if menu == "🏠 Home / Beranda":
         with col1:
             st.info("⚡ **Common Drugs Auto-Calc**\n\nAutomatically calculate safe dosage ranges and exact prescription amounts.")
             st.button("Go to Auto-Calc", use_container_width=True, on_click=switch_page, args=("💊 Auto-Calc / Kalkulator Otomatis",))
-                
+
+            st.error("💉 **Injection Calculator**\n\nCalculate exact mL for emergency IV/IM drugs.")
+            st.button("Go to Injection Drugs", use_container_width=True, on_click=switch_page, args=("💉 Injection Drugs / Obat Injeksi",)) 
+
             st.success("💧 **IV Fluid Calculator**\n\nCalculate maintenance fluids and exact nursing drip rates.")
             st.button("Go to IV Fluid", use_container_width=True, on_click=switch_page, args=("💧 IV Fluid / Cairan Infus",))
             
@@ -89,7 +95,10 @@ if menu == "🏠 Home / Beranda":
             
             st.info("⚖️ **BMI & BSA Calculator**\n\nCalculate Body Mass Index and Body Surface Area.")
             st.button("Go to BMI & BSA", use_container_width=True, on_click=switch_page, args=("⚖️ BMI & BSA / Antropometri",))
-                
+
+            st.success("🤰 **Obstetric Calculator**\n\nCalculate Gestational Age and Estimated Date of Delivery.")
+            st.button("Go to Obstetric Calc", use_container_width=True, on_click=switch_page, args=("🤰 Obstetric Calc / Kandungan",))
+
             st.error("📚 **Drug References**\n\nSearch your digital database for dosages, indications, and clinical warnings.")
             st.button("Go to Drug References", use_container_width=True, on_click=switch_page, args=("📚 Drug References / Referensi",))
             
@@ -97,7 +106,10 @@ if menu == "🏠 Home / Beranda":
         with col1:
             st.info("⚡ **Kalkulator Otomatis Obat**\n\nHitung otomatis rentang dosis aman dan jumlah resep yang tepat.")
             st.button("Buka Kalkulator Otomatis", use_container_width=True, on_click=switch_page, args=("💊 Auto-Calc / Kalkulator Otomatis",))
-                
+
+            st.error("💉 **Kalkulator Obat Injeksi**\n\nHitung mL persis untuk obat darurat IV/IM.")
+            st.button("Buka Kalkulator Injeksi", use_container_width=True, on_click=switch_page, args=("💉 Injection Drugs / Obat Injeksi",))
+
             st.success("💧 **Kalkulator Cairan Infus**\n\nHitung cairan pemeliharaan dan kecepatan tetesan infus perawat.")
             st.button("Buka Kalkulator Infus", use_container_width=True, on_click=switch_page, args=("💧 IV Fluid / Cairan Infus",))
             
@@ -110,7 +122,10 @@ if menu == "🏠 Home / Beranda":
             
             st.info("⚖️ **Kalkulator BMI & BSA**\n\nHitung Indeks Massa Tubuh dan Luas Permukaan Tubuh.")
             st.button("Buka Kalkulator Antropometri", use_container_width=True, on_click=switch_page, args=("⚖️ BMI & BSA / Antropometri",))
-                
+
+            st.success("🤰 **Kalkulator Kehamilan**\n\nHitung Usia Kehamilan (UK) dan Hari Perkiraan Lahir (HPL).")
+            st.button("Buka Kalkulator Kehamilan", use_container_width=True, on_click=switch_page, args=("🤰 Obstetric Calc / Kandungan",))
+
             st.error("📚 **Referensi Obat**\n\nCari database digital Anda untuk dosis, indikasi, dan peringatan klinis.")
             st.button("Buka Referensi Obat", use_container_width=True, on_click=switch_page, args=("📚 Drug References / Referensi",))
 
@@ -133,53 +148,63 @@ elif menu == "💊 Auto-Calc / Kalkulator Otomatis":
                     "info": str(row["Clinical Info"])
                 }
             
-            sel_label = "Select Drug" if st.session_state.lang == "English" else "Pilih Obat"
-            selected_drug = st.selectbox(sel_label, list(drug_db.keys()))
+            # --- NEW SEARCH FEATURE ---
+            search_label = "🔍 Search Drug:" if st.session_state.lang == "English" else "🔍 Cari Obat:"
+            search_query = st.text_input(search_label, key="search_auto")
             
-            st.info(drug_db[selected_drug]["info"])
+            # Filter the list based on search
+            filtered_drugs = [drug for drug in drug_db.keys() if search_query.lower() in drug.lower()]
             
-            col1, col2 = st.columns(2)
-            with col1:
-                w_label = "Patient Weight (kg)" if st.session_state.lang == "English" else "Berat Badan Pasien (kg)"
-                weight = st.number_input(w_label, min_value=0.0, step=0.1)
-            with col2:
-                f_label = "Frequency (Times a day)" if st.session_state.lang == "English" else "Frekuensi (Kali sehari)"
-                freq = st.selectbox(f_label, [1, 2, 3, 4], index=2)
-            
-            calc_txt = "Calculate" if st.session_state.lang == "English" else "Hitung"
-            
-            if st.button(calc_txt) and weight > 0:
-                drug_info = drug_db[selected_drug]
+            if filtered_drugs:
+                sel_label = "Select Drug" if st.session_state.lang == "English" else "Pilih Obat"
+                selected_drug = st.selectbox(sel_label, filtered_drugs)
                 
-                min_daily_total = drug_info["min_dose"] * weight
-                max_daily_total = drug_info["max_dose"] * weight
+                st.info(drug_db[selected_drug]["info"])
                 
-                min_per_dose = min_daily_total / freq
-                max_per_dose = max_daily_total / freq
+                col1, col2 = st.columns(2)
+                with col1:
+                    w_label = "Patient Weight (kg)" if st.session_state.lang == "English" else "Berat Badan Pasien (kg)"
+                    weight = st.number_input(w_label, min_value=0.0, step=0.1)
+                with col2:
+                    f_label = "Frequency (Times a day)" if st.session_state.lang == "English" else "Frekuensi (Kali sehari)"
+                    freq = st.selectbox(f_label, [1, 2, 3, 4], index=2)
                 
-                if st.session_state.lang == "English":
-                    st.success(f"**Total 24h Dose Range:** {min_daily_total:.1f} - {max_daily_total:.1f} mg/day")
-                    st.success(f"**Target Amount Per Dose Range:** {min_per_dose:.1f} - {max_per_dose:.1f} mg/dose")
+                calc_txt = "Calculate" if st.session_state.lang == "English" else "Hitung"
+                
+                if st.button(calc_txt) and weight > 0:
+                    drug_info = drug_db[selected_drug]
                     
-                    if drug_info["type"] == "tab":
-                        min_tabs, max_tabs = min_per_dose / drug_info["avail"], max_per_dose / drug_info["avail"]
-                        st.warning(f"📝 **Prescription Range:** Take {min_tabs:.2f} - {max_tabs:.2f} tablet(s), {freq} time(s) a day.")
-                    else:
-                        min_vol, max_vol = min_per_dose / drug_info["avail"], max_per_dose / drug_info["avail"]
-                        min_s, max_s = min_vol / 5.0, max_vol / 5.0
-                        st.warning(f"📝 **Prescription Range:** Take {min_vol:.1f} - {max_vol:.1f} mL ({min_s:.1f} - {max_s:.1f} measuring spoon(s) of 5mL), {freq} time(s) a day.")
-                else:
-                    st.success(f"**Rentang Dosis Total 24 Jam:** {min_daily_total:.1f} - {max_daily_total:.1f} mg/hari")
-                    st.success(f"**Rentang Target Per Dosis:** {min_per_dose:.1f} - {max_per_dose:.1f} mg/dosis")
+                    min_daily_total = drug_info["min_dose"] * weight
+                    max_daily_total = drug_info["max_dose"] * weight
                     
-                    if drug_info["type"] == "tab":
-                        min_tabs, max_tabs = min_per_dose / drug_info["avail"], max_per_dose / drug_info["avail"]
-                        st.warning(f"📝 **Resep:** Minum {min_tabs:.2f} - {max_tabs:.2f} tablet, {freq} kali sehari.")
-                    else:
-                        min_vol, max_vol = min_per_dose / drug_info["avail"], max_per_dose / drug_info["avail"]
-                        min_s, max_s = min_vol / 5.0, max_vol / 5.0
-                        st.warning(f"📝 **Resep:** Minum {min_vol:.1f} - {max_vol:.1f} mL ({min_s:.1f} - {max_s:.1f} sendok takar 5mL), {freq} kali sehari.")
+                    min_per_dose = min_daily_total / freq
+                    max_per_dose = max_daily_total / freq
+                    
+                    if st.session_state.lang == "English":
+                        st.success(f"**Total 24h Dose Range:** {min_daily_total:.1f} - {max_daily_total:.1f} mg/day")
+                        st.success(f"**Target Amount Per Dose Range:** {min_per_dose:.1f} - {max_per_dose:.1f} mg/dose")
                         
+                        if drug_info["type"] == "tab":
+                            min_tabs, max_tabs = min_per_dose / drug_info["avail"], max_per_dose / drug_info["avail"]
+                            st.warning(f"📝 **Prescription Range:** Take {min_tabs:.2f} - {max_tabs:.2f} tablet(s), {freq} time(s) a day.")
+                        else:
+                            min_vol, max_vol = min_per_dose / drug_info["avail"], max_per_dose / drug_info["avail"]
+                            min_s, max_s = min_vol / 5.0, max_vol / 5.0
+                            st.warning(f"📝 **Prescription Range:** Take {min_vol:.1f} - {max_vol:.1f} mL ({min_s:.1f} - {max_s:.1f} measuring spoon(s) of 5mL), {freq} time(s) a day.")
+                    else:
+                        st.success(f"**Rentang Dosis Total 24 Jam:** {min_daily_total:.1f} - {max_daily_total:.1f} mg/hari")
+                        st.success(f"**Rentang Target Per Dosis:** {min_per_dose:.1f} - {max_per_dose:.1f} mg/dosis")
+                        
+                        if drug_info["type"] == "tab":
+                            min_tabs, max_tabs = min_per_dose / drug_info["avail"], max_per_dose / drug_info["avail"]
+                            st.warning(f"📝 **Resep:** Minum {min_tabs:.2f} - {max_tabs:.2f} tablet, {freq} kali sehari.")
+                        else:
+                            min_vol, max_vol = min_per_dose / drug_info["avail"], max_per_dose / drug_info["avail"]
+                            min_s, max_s = min_vol / 5.0, max_vol / 5.0
+                            st.warning(f"📝 **Resep:** Minum {min_vol:.1f} - {max_vol:.1f} mL ({min_s:.1f} - {max_s:.1f} sendok takar 5mL), {freq} kali sehari.")
+            else:
+                st.warning("Drug not found." if st.session_state.lang == "English" else "Obat tidak ditemukan.")
+                
         except ValueError:
              st.error("⚠️ Column mismatch in Excel.")
     else:
@@ -229,6 +254,82 @@ elif menu == "🧮 Manual Calculator / Manual":
             else:
                 st.success(f"**Dosis Target:** {total_dose:.1f} mg")
                 st.info(f"**Instruksi:** Berikan {volume_ml:.1f} mL ({spoons:.2f} sendok takar 5mL) per dosis.")
+
+# --- 6.5 INJECTION DRUGS ---
+elif menu == "💉 Injection Drugs / Obat Injeksi":
+    st.header("Injection Drugs" if st.session_state.lang == "English" else "Kalkulator Obat Injeksi Darurat")
+    
+    if os.path.exists(file_path):
+        try:
+            df_inject = pd.read_excel(file_path, sheet_name="Injections")
+            
+            inj_db = {}
+            for index, row in df_inject.iterrows():
+                inj_db[row["Drug Name"]] = {
+                    "dose_per_kg": float(row["Standard Dose (mg/kg)"]),
+                    "max_dose": float(row["Max Dose (mg)"]),
+                    "concentration": float(row["Concentration (mg/mL)"]),
+                    "info": str(row["Clinical Info"]) if "Clinical Info" in df_inject.columns and not pd.isna(row["Clinical Info"]) else ""
+                }
+            
+            # --- NEW SEARCH FEATURE ---
+            search_label_inj = "🔍 Search Injection:" if st.session_state.lang == "English" else "🔍 Cari Obat Injeksi:"
+            search_query_inj = st.text_input(search_label_inj, key="search_inj")
+            
+            # Filter the list based on search
+            filtered_injs = [inj for inj in inj_db.keys() if search_query_inj.lower() in inj.lower()]
+            
+            if filtered_injs:
+                sel_label = "Select Injection Drug" if st.session_state.lang == "English" else "Pilih Obat Injeksi"
+                selected_inj = st.selectbox(sel_label, filtered_injs)
+                
+                if inj_db[selected_inj]["info"]:
+                    st.info(inj_db[selected_inj]["info"])
+                
+                w_label = "Patient Weight (kg)" if st.session_state.lang == "English" else "Berat Badan Pasien (kg)"
+                weight = st.number_input(w_label, min_value=0.0, step=0.1, key="inj_w")
+                
+                calc_txt = "Calculate" if st.session_state.lang == "English" else "Hitung"
+                
+                if st.button(calc_txt) and weight > 0:
+                    drug_info = inj_db[selected_inj]
+                    
+                    target_dose = weight * drug_info["dose_per_kg"]
+                    
+                    is_maxed = False
+                    if drug_info["max_dose"] > 0 and target_dose > drug_info["max_dose"]:
+                        target_dose = drug_info["max_dose"]
+                        is_maxed = True
+                        
+                    vol_ml = target_dose / drug_info["concentration"]
+                    
+                    if st.session_state.lang == "English":
+                        st.write(f"**Dose Standard:** {drug_info['dose_per_kg']} mg/kg")
+                        
+                        if is_maxed:
+                            st.warning(f"⚠️ **Target Dose capped at Max Single Dose:** {target_dose:.1f} mg")
+                        else:
+                            st.success(f"**Target Dose:** {target_dose:.1f} mg")
+                            
+                        st.error(f"💉 **Draw into syringe (Volume):** {vol_ml:.2f} mL")
+                    else:
+                        st.write(f"**Standar Dosis:** {drug_info['dose_per_kg']} mg/kg")
+                        
+                        if is_maxed:
+                            st.warning(f"⚠️ **Target Dosis dibatasi pada Dosis Maksimal:** {target_dose:.1f} mg")
+                        else:
+                            st.success(f"**Target Dosis:** {target_dose:.1f} mg")
+                            
+                        st.error(f"💉 **Tarik ke dalam spuit (Volume):** {vol_ml:.2f} mL")
+            else:
+                st.warning("Drug not found." if st.session_state.lang == "English" else "Obat Injeksi tidak ditemukan.")
+                    
+        except ValueError:
+            st.error("⚠️ Sheet 'Injections' not found in Excel, or column names do not match. Please check your Excel file.")
+        except Exception as e:
+            st.error(f"⚠️ Error reading Excel: {e}")
+    else:
+        st.error(f"⚠️ Could not find '{file_path}'.")
 
 # --- 4. IV FLUID ---
 elif menu == "💧 IV Fluid / Cairan Infus":
@@ -357,6 +458,48 @@ elif menu == "⚖️ BMI & BSA / Antropometri":
             st.success(f"**Luas Permukaan Tubuh (BSA):** {bsa:.2f} m²")
             st.info(f"**Indeks Massa Tubuh (BMI):** {bmi:.1f} kg/m²")
             st.markdown(f"**Kategori:** :{color}[{cat_id}]")
+# --- 6.7 OBSTETRIC CALC ---
+elif menu == "🤰 Obstetric Calc / Kandungan":
+    st.header("Obstetric Calculator" if st.session_state.lang == "English" else "Kalkulator Kehamilan (HPL & UK)")
+    
+    st.info("Calculate Gestational Age and Estimated Date of Delivery (EDD) based on the First Day of Last Menstrual Period (LMP)." if st.session_state.lang == "English" else "Hitung Usia Kehamilan (UK) dan Hari Perkiraan Lahir (HPL) berdasarkan Hari Pertama Haid Terakhir (HPHT).")
+    
+    st.divider()
+    
+    lmp_label = "Select LMP / Pilih HPHT:"
+    
+    today = datetime.date.today()
+    default_lmp = today - datetime.timedelta(days=70) # Defaults to ~10 weeks pregnant for convenience
+    
+    lmp_date = st.date_input(lmp_label, value=default_lmp, max_value=today)
+    
+    calc_txt = "Calculate" if st.session_state.lang == "English" else "Hitung"
+    
+    if st.button(calc_txt):
+        # Naegele's Rule: EDD = LMP + 280 days
+        edd = lmp_date + datetime.timedelta(days=280)
+        
+        # Calculate Gestational Age
+        days_pregnant = (today - lmp_date).days
+        weeks = days_pregnant // 7
+        days = days_pregnant % 7
+        
+        edd_str = edd.strftime("%d %B %Y")
+        
+        if st.session_state.lang == "English":
+            st.success(f"👶 **Estimated Date of Delivery (EDD):** {edd_str}")
+            
+            if days_pregnant > 294: # 42 weeks
+                st.warning(f"📅 **Current Gestational Age:** {weeks} weeks, {days} days *(Post-term)*")
+            else:
+                st.info(f"📅 **Current Gestational Age:** {weeks} weeks, {days} days")
+        else:
+            st.success(f"👶 **Hari Perkiraan Lahir (HPL):** {edd_str}")
+            
+            if days_pregnant > 294: # 42 minggu
+                st.warning(f"📅 **Usia Kehamilan Saat Ini:** {weeks} minggu, {days} hari *(Post-term / Serotinus)*")
+            else:
+                st.info(f"📅 **Usia Kehamilan Saat Ini:** {weeks} minggu, {days} hari")
 
 # --- 7. DRUG REFERENCES ---
 elif menu == "📚 Drug References / Referensi":
