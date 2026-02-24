@@ -37,7 +37,7 @@ menu_options = [
     "💧 IV Fluid / Cairan Infus",
     "👶 Peds Dehydration / Dehidrasi Anak", 
     "⚖️ BMI & BSA / Antropometri", 
-    "🤰 Obstetric Calc / Kandungan"
+    "🤰 Obstetric Calc / Kandungan",
     "📚 Drug References / Referensi"
 ]
 
