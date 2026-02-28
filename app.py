@@ -631,8 +631,6 @@ elif menu == "⚖️ BMI & BSA / Antropometri":
     with tab2:
         st.subheader("Pediatric True Z-Scores" if st.session_state.lang == "English" else "Z-Score Pediatri Akurat (LMS)")
         
-        st.info("⚠️ **Clinical Note:** This tool requires the official WHO/CDC `.xlsx` LMS data files to be present in your GitHub repository." if st.session_state.lang == "English" else "⚠️ **Catatan Klinis:** Alat ini membutuhkan file data LMS `.xlsx` resmi WHO/CDC di repositori GitHub Anda.")
-        
         col1, col2 = st.columns(2)
         with col1:
             sex_label = "Sex" if st.session_state.lang == "English" else "Jenis Kelamin"
@@ -725,7 +723,7 @@ elif menu == "⚖️ BMI & BSA / Antropometri":
                 st.error(f"⚠️ **Column Error:** Could not find column {e}. Check if your CDC file uses 'Agemos' and WHO uses 'Day'.")
             except Exception as e:
                 st.error(f"⚠️ **Error calculating Z-score:** {e}")
-                
+
 # --- 6.7 OBSTETRIC CALC ---
 elif menu == "🤰 Obstetric Calc / Kandungan":
     st.header("Obstetric Calculator" if st.session_state.lang == "English" else "Kalkulator Kehamilan (HPL & UK)")
