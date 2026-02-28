@@ -331,38 +331,203 @@ elif menu == "💉 Injection Drugs / Obat Injeksi":
     else:
         st.error(f"⚠️ Could not find '{file_path}'.")
 
-# --- 4. IV FLUID ---
+# --- 3. IV FLUID & ELECTROLYTES ---
 elif menu == "💧 IV Fluid / Cairan Infus":
-    st.header("IV Hydration Calculator" if st.session_state.lang == "English" else "Kalkulator Cairan Infus")
+    st.header("IV Fluid & Electrolytes" if st.session_state.lang == "English" else "Terapi Cairan & Elektrolit")
     
-    w_label = "Patient Weight (kg)" if st.session_state.lang == "English" else "Berat Badan Pasien (kg)"
-    weight = st.number_input(w_label, min_value=0.0, step=0.1)
+    tab_titles = ["💧 Maintenance", "🏜️ Dehydration", "⚖️ Ion Correction", "🧪 Fluid Types"]
+    tab1, tab2, tab3, tab4 = st.tabs(tab_titles)
     
-    df_label = "Select Drop Factor" if st.session_state.lang == "English" else "Pilih Faktor Tetes"
-    if st.session_state.lang == "English":
-        drop_factor = st.radio(df_label, [20, 60], format_func=lambda x: f"{x} gtt/mL (Macro)" if x==20 else f"{x} gtt/mL (Micro)")
-    else:
-        drop_factor = st.radio(df_label, [20, 60], format_func=lambda x: f"{x} tpm (Makro)" if x==20 else f"{x} tpm (Mikro)")
-    
-    calc_txt = "Calculate" if st.session_state.lang == "English" else "Hitung"
-    
-    if st.button(calc_txt) and weight > 0:
-        if weight <= 10:
-            vol = 100 * weight
-        elif weight <= 20:
-            vol = 1000 + 50 * (weight - 10)
-        else:
-            vol = 1500 + 20 * (weight - 20)
-            
-        drip_rate = (vol * drop_factor) / (24 * 60)
+    # ==========================================
+    # TAB 1: MAINTENANCE FLUID
+    # ==========================================
+    with tab1:
+        st.subheader("Maintenance Fluid" if st.session_state.lang == "English" else "Cairan Rumatan (Maintenance)")
         
-        if st.session_state.lang == "English":
-            st.success(f"**Total 24h Volume Requirement:** {vol:.1f} mL")
-            st.info(f"**Nursing Instruction:** Run IV fluid at {drip_rate:.0f} drops per minute.")
-        else:
-            st.success(f"**Kebutuhan Volume 24 Jam:** {vol:.1f} mL")
-            st.info(f"**Instruksi Perawat:** Berikan cairan infus dengan kecepatan {drip_rate:.0f} tetes per menit (tpm).")
+        # Display Formulas
+        st.info("**Formula (Holliday-Segar):**\n\n"
+                "• 0 - 10 kg = 100 mL/kg\n\n"
+                "• 11 - 20 kg = 1000 mL + (50 mL x every kg > 10)\n\n"
+                "• > 20 kg = 1500 mL + (20 mL x every kg > 20)\n\n"
+                "*Drops: Macro = 20 drops/mL | Micro = 60 drops/mL*")
+        
+        w_label = "Patient Weight (kg)" if st.session_state.lang == "English" else "Berat Badan Pasien (kg)"
+        weight_m = st.number_input(w_label, min_value=0.0, step=0.1, key="maint_w")
+        
+        if weight_m > 0:
+            if weight_m <= 10:
+                maint_vol = weight_m * 100
+            elif weight_m <= 20:
+                maint_vol = 1000 + ((weight_m - 10) * 50)
+            else:
+                maint_vol = 1500 + ((weight_m - 20) * 20)
+                
+            drops_macro = (maint_vol * 20) / (24 * 60)
+            drops_micro = (maint_vol * 60) / (24 * 60)
+            
+            if st.session_state.lang == "English":
+                st.success(f"**Total 24h Maintenance:** {maint_vol:.0f} mL")
+                st.write(f"💧 **Macro Drip (20 drops/mL):** {drops_macro:.0f} drops per minute (tpm)")
+                st.write(f"💧 **Micro Drip (60 drops/mL):** {drops_micro:.0f} drops per minute (tpm)")
+                st.caption("⚖️ **Disclaimer:** This is baseline maintenance. Adjust volumes based on fever, tachypnea, or ongoing fluid losses.")
+            else:
+                st.success(f"**Total Rumatan 24 Jam:** {maint_vol:.0f} mL")
+                st.write(f"💧 **Makro (20 tetes/mL):** {drops_macro:.0f} tetes per menit (tpm)")
+                st.write(f"💧 **Mikro (60 tetes/mL):** {drops_micro:.0f} tetes per menit (tpm)")
+                st.caption("⚖️ **Penafian:** Ini adalah rumatan dasar. Sesuaikan volume jika ada demam, takipnea, atau kehilangan cairan berkelanjutan.")
 
+    # ==========================================
+    # TAB 2: DEHYDRATION FLUID
+    # ==========================================
+    with tab2:
+        st.subheader("Dehydration Deficit" if st.session_state.lang == "English" else "Defisit Cairan Dehidrasi")
+        
+        # Pediatric Diarrhea Warning
+        if st.session_state.lang == "English":
+            st.error("⚠️ **Pediatric Warning:** For children with dehydration due to diarrhea/gastroenteritis, please use the dedicated **👶 Peds Dehydration (MTBS)** tab.")
+        else:
+            st.error("⚠️ **Peringatan Pediatri:** Untuk anak dengan dehidrasi akibat diare/gastroenteritis, harap gunakan tab khusus **👶 Dehidrasi Anak (MTBS)**.")
+        
+        # Display Formulas
+        st.info("**Formulas:**\n\n"
+                "• Deficit Volume = Weight x Dehydration % x 1000\n\n"
+                "• First 8 Hours = 50% Deficit + 33% Daily Maintenance\n\n"
+                "• Next 16 Hours = 50% Deficit + 67% Daily Maintenance")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            weight_d = st.number_input(w_label, min_value=0.0, step=0.1, key="dehyd_w")
+        with col2:
+            deg_label = "Dehydration Level" if st.session_state.lang == "English" else "Tingkat Dehidrasi"
+            deg_options = ["Mild (5%) / Ringan", "Moderate (10%) / Sedang"]
+            deg = st.selectbox(deg_label, deg_options)
+            
+        if weight_d > 0:
+            pct = 0.05 if "5%" in deg else 0.10
+            deficit_vol = weight_d * pct * 1000
+            
+            if weight_d <= 10:
+                maint = weight_d * 100
+            elif weight_d <= 20:
+                maint = 1000 + ((weight_d - 10) * 50)
+            else:
+                maint = 1500 + ((weight_d - 20) * 20)
+                
+            total_fluid = deficit_vol + maint
+            
+            if st.session_state.lang == "English":
+                st.warning(f"**Fluid Deficit:** {deficit_vol:.0f} mL")
+                st.success(f"**Total 24h Requirement (Deficit + Maintenance):** {total_fluid:.0f} mL")
+                st.markdown("---")
+                st.write("**Recommended Delivery (Standard Protocol):**")
+                st.write(f"⏱️ **First 8 Hours:** {(deficit_vol/2) + (maint/3):.0f} mL (Use RL or NS)")
+                st.write(f"⏱️ **Next 16 Hours:** {(deficit_vol/2) + (maint*(2/3)):.0f} mL")
+                st.caption("⚖️ **Disclaimer:** Always evaluate the patient clinically. Stop or slow infusion if signs of fluid overload (e.g., crackles, edema) occur.")
+            else:
+                st.warning(f"**Defisit Cairan:** {deficit_vol:.0f} mL")
+                st.success(f"**Total Kebutuhan 24 Jam (Defisit + Rumatan):** {total_fluid:.0f} mL")
+                st.markdown("---")
+                st.write("**Rekomendasi Pemberian (Protokol Standar):**")
+                st.write(f"⏱️ **8 Jam Pertama:** {(deficit_vol/2) + (maint/3):.0f} mL (Gunakan RL atau NS)")
+                st.write(f"⏱️ **16 Jam Berikutnya:** {(deficit_vol/2) + (maint*(2/3)):.0f} mL")
+                st.caption("⚖️ **Penafian:** Selalu evaluasi klinis pasien. Hentikan atau perlambat infus jika muncul tanda kelebihan cairan (misal: ronkhi, edema).")
+
+    # ==========================================
+    # TAB 3: ION CORRECTION (Na & K)
+    # ==========================================
+    with tab3:
+        st.subheader("Electrolyte Correction" if st.session_state.lang == "English" else "Koreksi Elektrolit")
+        
+        ion_choice = st.radio("Select Ion / Pilih Ion:", ["Sodium (Na+) / Natrium", "Potassium (K+) / Kalium"], horizontal=True)
+        
+        # Display formulas based on choice
+        if "Na" in ion_choice:
+            st.info("**Na+ Formulas:**\n\n"
+                    "• Na Deficit (mEq) = (Target - Actual) x TBW x Weight\n\n"
+                    "• 3% NaCl Volume (mL) = (Na Deficit / 513) x 1000\n\n"
+                    "*(TBW Multipliers: Male/Child = 0.6, Female/Elderly Male = 0.5, Elderly Female = 0.45)*")
+        else:
+            st.info("**K+ Formula:**\n\n"
+                    "• K Deficit (mEq) = (Target - Actual) x Weight x 0.3")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            weight_i = st.number_input(w_label, min_value=0.0, step=0.1, key="ion_w")
+        with col2:
+            act_label = "Actual Lab Result" if st.session_state.lang == "English" else "Hasil Lab Aktual"
+            actual_val = st.number_input(act_label, value=125.0 if "Na" in ion_choice else 3.0, step=0.1)
+        with col3:
+            tar_label = "Target Level" if st.session_state.lang == "English" else "Target"
+            target_val = st.number_input(tar_label, value=135.0 if "Na" in ion_choice else 4.0, step=0.1)
+            
+        if "Na" in ion_choice:
+            tbw_label = "Patient Type (for TBW)" if st.session_state.lang == "English" else "Tipe Pasien (untuk TBW)"
+            tbw_type = st.selectbox(tbw_label, ["Male/Child (0.6)", "Female/Elderly Male (0.5)", "Elderly Female (0.45)"])
+            tbw_mult = float(tbw_type.split("(")[1].replace(")", ""))
+            
+            if st.button("Calculate Na+" if st.session_state.lang == "English" else "Hitung Na+") and weight_i > 0:
+                na_deficit = (target_val - actual_val) * tbw_mult * weight_i
+                vol_3pct = (na_deficit / 513) * 1000
+                
+                st.error(f"**Total Na+ Deficit:** {na_deficit:.1f} mEq")
+                st.warning(f"💉 **Correction with 3% NaCl:** Give {vol_3pct:.1f} mL")
+                
+                if st.session_state.lang == "English":
+                    st.caption("⚠️ **Safety Warning:** Do not correct Na+ faster than 8-10 mEq/L per 24 hours. Rapid correction can cause severe osmotic demyelination syndrome.")
+                else:
+                    st.caption("⚠️ **Peringatan Keamanan:** Jangan koreksi Na+ lebih cepat dari 8-10 mEq/L per 24 jam. Koreksi terlalu cepat dapat menyebabkan sindrom demielinasi osmotik.")
+                
+        else: # Potassium
+            if st.button("Calculate K+" if st.session_state.lang == "English" else "Hitung K+") and weight_i > 0:
+                k_deficit = (target_val - actual_val) * weight_i * 0.3
+                
+                st.error(f"**Total K+ Deficit:** {k_deficit:.1f} mEq")
+                st.warning(f"💉 **Correction:** Give {k_deficit:.1f} mEq of KCl IV")
+                
+                if st.session_state.lang == "English":
+                    st.caption("⚠️ **Safety Warning:** Infusion rate must not exceed 10 mEq/hour via peripheral IV (Adults) or 0.5-1 mEq/kg/hour (Pediatrics) to avoid life-threatening cardiac arrhythmias. Must be diluted.")
+                else:
+                    st.caption("⚠️ **Peringatan Keamanan:** Kecepatan infus tidak boleh melebihi 10 mEq/jam via IV perifer (Dewasa) atau 0.5-1 mEq/kg/jam (Anak) untuk menghindari aritmia mematikan. Harus diencerkan.")
+
+# ==========================================
+    # TAB 4: FLUID TYPES & RECOMMENDATIONS
+    # ==========================================
+    with tab4:
+        st.subheader("Fluid Composition & Guidelines" if st.session_state.lang == "English" else "Komposisi Cairan & Panduan")
+        
+        fluid_dict = {
+            "Fluid / Cairan": ["RL (Ringer Lactate)", "NS (0.9% NaCl)", "D5% 1/2 NS", "D5% 1/4 NS", "KA-EN 3B", "3% NaCl", "KCl 7.46% (Additive/Ampule)"],
+            # Using strings below so we can add the specific 'mEq/mL' text for KCl
+            "Na+ (mEq/L)": ["130", "154", "77", "38.5", "50", "513", "0"],
+            "K+ (mEq/L)": ["4", "0", "0", "0", "20", "0", "1 mEq / mL"],
+            "Best For / Indikasi Utama": [
+                "Resuscitation, Dehydration, Surgery, Dengue",
+                "Resuscitation, Shock, Hyponatremia",
+                "Maintenance fluid (Adults/Older Kids)",
+                "Maintenance fluid (Infants/Neonates)",
+                "Maintenance with K+ deficit (Hypokalemia)",
+                "Severe symptomatic hyponatremia ONLY",
+                "Hypokalemia correction. ⚠️ MUST BE DILUTED before IV."
+            ]
+        }
+        df_fluids = pd.DataFrame(fluid_dict)
+        st.dataframe(df_fluids, hide_index=True, use_container_width=True)
+        
+        st.markdown("---")
+        if st.session_state.lang == "English":
+            st.write("### 💡 Quick Clinical Recommendations:")
+            st.write("- **Severe Dehydration/Shock:** Push isotonic fluids (RL or NS) as fast as possible.")
+            st.write("- **Dengue Fever:** RL is preferred as it limits hyperchloremic acidosis compared to NS.")
+            st.write("- **Maintenance:** Avoid using pure RL/NS for multi-day maintenance as they lack glucose and adequate potassium. Switch to D5% 1/2 NS or KA-EN 3B.")
+            st.write("- **KCl Additive:** Never give KCl as an IV push. Always dilute in maintenance fluid and run slowly.")
+            st.caption("⚖️ **Disclaimer:** Fluid selection should be tailored to individual patient lab results and clinical status.")
+        else:
+            st.write("### 💡 Rekomendasi Klinis Cepat:")
+            st.write("- **Dehidrasi Berat/Syok:** Berikan cairan isotonik (RL atau NS) secepat mungkin.")
+            st.write("- **Demam Berdarah (DHF):** RL lebih disukai karena mencegah asidosis hiperkloremik dibandingkan NS.")
+            st.write("- **Rumatan (Maintenance):** Hindari RL/NS murni untuk rumatan berhari-hari karena tidak mengandung glukosa dan kalium yang cukup. Gunakan D5% 1/2 NS atau KA-EN 3B.")
+            st.write("- **Aditif KCl:** Jangan pernah memberikan KCl secara bolus/push IV. Selalu encerkan dalam cairan infus dan berikan perlahan.")
+            st.caption("⚖️ **Penafian:** Pemilihan cairan harus disesuaikan dengan hasil lab individu dan status klinis pasien.")
 # --- 5. PEDIATRIC DEHYDRATION (NEW) ---
 elif menu == "👶 Peds Dehydration / Dehidrasi Anak":
     st.header("Pediatric Dehydration (WHO)" if st.session_state.lang == "English" else "Kalkulator Dehidrasi Anak (MTBS / WHO)")
@@ -418,46 +583,149 @@ elif menu == "👶 Peds Dehydration / Dehidrasi Anak":
                 st.error("⚠️ *Evaluasi terus menerus. Jika nadi radialis masih lemah/tidak teraba setelah Langkah 1, ulangi Langkah 1.*")
 
 # --- 6. BMI & BSA CALCULATOR ---
+# --- 5. BMI & BSA / ANTROPOMETRI ---
 elif menu == "⚖️ BMI & BSA / Antropometri":
-    st.header("BMI & BSA Calculator" if st.session_state.lang == "English" else "Kalkulator BMI & BSA (Antropometri)")
+    st.header("Anthropometry & Z-Scores" if st.session_state.lang == "English" else "Antropometri & Z-Score (WHO/CDC)")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        w_label = "Patient Weight (kg)" if st.session_state.lang == "English" else "Berat Badan (kg)"
-        weight = st.number_input(w_label, min_value=0.0, step=0.1)
-    with col2:
-        h_label = "Patient Height (cm)" if st.session_state.lang == "English" else "Tinggi Badan (cm)"
-        height = st.number_input(h_label, min_value=0.0, step=1.0)
-        
-    calc_txt = "Calculate" if st.session_state.lang == "English" else "Hitung"
+    tab1, tab2 = st.tabs(["🧍 Adult (BMI & BSA)", "👶 Pediatric Z-Scores (LMS)"])
     
-    if st.button(calc_txt) and weight > 0 and height > 0:
-        height_m = height / 100
-        bmi = weight / (height_m ** 2)
+    # ==========================================
+    # TAB 1: ADULT BMI & BSA
+    # ==========================================
+    with tab1:
+        st.subheader("Adult BMI & BSA" if st.session_state.lang == "English" else "BMI & BSA Dewasa")
         
-        if bmi < 18.5:
-            cat_en, cat_id = "Underweight", "Kekurangan Berat Badan"
-            color = "blue"
-        elif 18.5 <= bmi <= 24.9:
-            cat_en, cat_id = "Normal weight", "Berat Badan Normal"
-            color = "green"
-        elif 25.0 <= bmi <= 29.9:
-            cat_en, cat_id = "Overweight", "Kelebihan Berat Badan"
-            color = "orange"
-        else:
-            cat_en, cat_id = "Obesity", "Obesitas"
-            color = "red"
+        col1, col2 = st.columns(2)
+        with col1:
+            w_label = "Weight (kg)" if st.session_state.lang == "English" else "Berat Badan (kg)"
+            weight = st.number_input(w_label, min_value=0.0, step=0.1, key="bmi_w")
+        with col2:
+            h_label = "Height (cm)" if st.session_state.lang == "English" else "Tinggi Badan (cm)"
+            height_cm = st.number_input(h_label, min_value=0.0, step=0.1, key="bmi_h")
             
-        bsa = math.sqrt((weight * height) / 3600)
+        calc_txt = "Calculate" if st.session_state.lang == "English" else "Hitung"
         
-        if st.session_state.lang == "English":
-            st.success(f"**Body Surface Area (BSA):** {bsa:.2f} m²")
-            st.info(f"**Body Mass Index (BMI):** {bmi:.1f} kg/m²")
-            st.markdown(f"**Category:** :{color}[{cat_en}]")
-        else:
-            st.success(f"**Luas Permukaan Tubuh (BSA):** {bsa:.2f} m²")
-            st.info(f"**Indeks Massa Tubuh (BMI):** {bmi:.1f} kg/m²")
-            st.markdown(f"**Kategori:** :{color}[{cat_id}]")
+        if st.button(calc_txt, key="calc_adult") and weight > 0 and height_cm > 0:
+            height_m = height_cm / 100
+            bmi = weight / (height_m ** 2)
+            bsa = math.sqrt((weight * height_cm) / 3600)
+            
+            if st.session_state.lang == "English":
+                st.success(f"**BMI:** {bmi:.1f} kg/m²")
+                if bmi < 18.5: st.warning("Classification: Underweight")
+                elif bmi < 24.9: st.info("Classification: Normal weight")
+                elif bmi < 29.9: st.warning("Classification: Overweight")
+                else: st.error("Classification: Obese")
+                st.success(f"**Body Surface Area (BSA):** {bsa:.2f} m²")
+            else:
+                st.success(f"**Indeks Massa Tubuh (BMI):** {bmi:.1f} kg/m²")
+                if bmi < 18.5: st.warning("Klasifikasi: Underweight (Kurang)")
+                elif bmi < 24.9: st.info("Klasifikasi: Normal")
+                elif bmi < 29.9: st.warning("Klasifikasi: Overweight (Berlebih)")
+                else: st.error("Klasifikasi: Obesitas")
+                st.success(f"**Luas Permukaan Tubuh (BSA):** {bsa:.2f} m²")
+
+    # ==========================================
+    # TAB 2: PEDIATRIC Z-SCORES (WHO/CDC LMS)
+    # ==========================================
+    with tab2:
+        st.subheader("Pediatric True Z-Scores" if st.session_state.lang == "English" else "Z-Score Pediatri Akurat (LMS)")
+        
+        st.info("⚠️ **Clinical Note:** This tool requires the official WHO/CDC `.xlsx` LMS data files to be present in your GitHub repository." if st.session_state.lang == "English" else "⚠️ **Catatan Klinis:** Alat ini membutuhkan file data LMS `.xlsx` resmi WHO/CDC di repositori GitHub Anda.")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            sex_label = "Sex" if st.session_state.lang == "English" else "Jenis Kelamin"
+            sex = st.radio(sex_label, ["Boy / Laki-laki", "Girl / Perempuan"], horizontal=True)
+            
+            age_y_label = "Age (Years)" if st.session_state.lang == "English" else "Usia (Tahun)"
+            age_y = st.number_input(age_y_label, min_value=0, max_value=20, step=1, value=2)
+            
+            age_m_label = "Age (Months)" if st.session_state.lang == "English" else "Usia (Bulan)"
+            age_m = st.number_input(age_m_label, min_value=0, max_value=11, step=1, value=0)
+            
+        with col2:
+            weight_p = st.number_input(w_label, min_value=0.0, step=0.1, key="ped_w")
+            height_p = st.number_input(h_label, min_value=0.0, step=0.1, key="ped_h")
+            
+        total_months = (age_y * 12) + age_m
+        
+        if st.button(calc_txt, key="calc_ped") and weight_p > 0 and height_p > 0:
+            st.markdown("---")
+            
+            # Helper function for LMS math
+            def calculate_z(x, l, m, s):
+                if l == 0:
+                    return math.log(x / m) / s
+                return (((x / m) ** l) - 1) / (l * s)
+
+            try:
+                is_boy = "Boy" in sex
+                total_months = (age_y * 12) + age_m
+                
+                # Convert age to total days for the WHO 'Day' column
+                # (365.25 days/year to account for leap years, 30.4375 days/month)
+                target_days = (age_y * 365.25) + (age_m * 30.4375)
+                
+                if total_months <= 60:
+                    if st.session_state.lang == "English":
+                        st.write(f"📊 **Using WHO Standards (Target: ~{int(target_days)} Days)**")
+                    else:
+                        st.write(f"📊 **Menggunakan Standar WHO (Target: ~{int(target_days)} Hari)**")
+                        
+                    wfa_file = "who_wfa_boys.xlsx" if is_boy else "who_wfa_girls.xlsx"
+                    hfa_file = "who_lfa_boys.xlsx" if is_boy else "who_lfa_girls.xlsx"
+                    
+                    # Read Weight-for-Age and find closest 'Day'
+                    df_wfa = pd.read_excel(wfa_file)
+                    row_w = df_wfa.iloc[(df_wfa['Day'] - target_days).abs().argsort()[:1]].iloc[0]
+                    z_weight = calculate_z(weight_p, row_w['L'], row_w['M'], row_w['S'])
+                    
+                    # Read Height-for-Age and find closest 'Day'
+                    df_hfa = pd.read_excel(hfa_file)
+                    row_h = df_hfa.iloc[(df_hfa['Day'] - target_days).abs().argsort()[:1]].iloc[0]
+                    z_height = calculate_z(height_p, row_h['L'], row_h['M'], row_h['S'])
+                    
+                else:
+                    if st.session_state.lang == "English":
+                        st.write(f"📊 **Using CDC Charts (Target: {total_months} Months)**")
+                    else:
+                        st.write(f"📊 **Menggunakan Standar CDC (Target: {total_months} Bulan)**")
+                        
+                    cdc_sex_code = 1 if is_boy else 2
+                    
+                    # Read Weight-for-Age and find closest 'Agemos'
+                    df_cdc_w = pd.read_excel("cdc_wfa.xlsx")
+                    df_filtered_w = df_cdc_w[(df_cdc_w['Sex'] == cdc_sex_code)]
+                    closest_row_w = df_filtered_w.iloc[(df_filtered_w['Agemos'] - total_months).abs().argsort()[:1]].iloc[0]
+                    z_weight = calculate_z(weight_p, closest_row_w['L'], closest_row_w['M'], closest_row_w['S'])
+                    
+                    # Read Height-for-Age and find closest 'Agemos'
+                    df_cdc_h = pd.read_excel("cdc_hfa.xlsx")
+                    df_filtered_h = df_cdc_h[(df_cdc_h['Sex'] == cdc_sex_code)]
+                    closest_row_h = df_filtered_h.iloc[(df_filtered_h['Agemos'] - total_months).abs().argsort()[:1]].iloc[0]
+                    z_height = calculate_z(height_p, closest_row_h['L'], closest_row_h['M'], closest_row_h['S'])
+
+                # Display Results
+                st.success(f"⚖️ **Weight-for-Age Z-Score (BB/U):** {z_weight:.2f} SD")
+                if z_weight < -3: st.error("Status: Severely Underweight (Gizi Buruk)")
+                elif z_weight < -2: st.warning("Status: Underweight (Gizi Kurang)")
+                elif z_weight > 2: st.warning("Status: Possible Overweight (Risiko BB Lebih)")
+                else: st.info("Status: Normal Weight")
+                
+                st.success(f"📏 **Height-for-Age Z-Score (TB/U):** {z_height:.2f} SD")
+                if z_height < -3: st.error("Status: Severely Stunted (Sangat Pendek)")
+                elif z_height < -2: st.warning("Status: Stunted (Pendek)")
+                elif z_height > 3: st.warning("Status: Very Tall (Sangat Tinggi)")
+                else: st.info("Status: Normal Height")
+
+            except FileNotFoundError as e:
+                st.error(f"⚠️ **Missing File:** Could not find `{e.filename}`. Make sure it is uploaded to GitHub and named correctly.")
+            except KeyError as e:
+                st.error(f"⚠️ **Column Error:** Could not find column {e}. Check if your CDC file uses 'Agemos' and WHO uses 'Day'.")
+            except Exception as e:
+                st.error(f"⚠️ **Error calculating Z-score:** {e}")
+                
 # --- 6.7 OBSTETRIC CALC ---
 elif menu == "🤰 Obstetric Calc / Kandungan":
     st.header("Obstetric Calculator" if st.session_state.lang == "English" else "Kalkulator Kehamilan (HPL & UK)")
